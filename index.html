@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chatbot FAQ THCS Phú An</title>
   
-  <!-- Thư viện hỗ trợ đọc và hiển thị Markdown đẹp mắt -->
+  <!-- Thư viện Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <style>
@@ -63,7 +63,7 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
 
-    /* ĐỊNH DẠNG TRÌNH BÀY CHO VĂN BẢN BOT (MARKDOWN) */
+    /* ĐỊNH DẠNG HỌA TIẾT MARKDOWN */
     .message.bot p { margin: 0 0 8px 0; }
     .message.bot p:last-child { margin-bottom: 0; }
     .message.bot ul, .message.bot ol { 
@@ -90,7 +90,7 @@
     #chat-input:focus {
       border-color: #0073aa;
     }
-    #chat-input-container button { 
+    #send-btn { 
       margin-left: 8px; 
       padding: 10px 16px; 
       background: #0073aa; 
@@ -101,7 +101,7 @@
       cursor: pointer; 
       transition: background 0.2s;
     }
-    #chat-input-container button:hover {
+    #send-btn:hover {
       background: #005177;
     }
   </style>
@@ -114,76 +114,95 @@
     <div class="message bot">Kính chào Phụ huynh! Tôi là Trợ lý tư vấn tự động của Trường THCS Phú An. Phụ huynh cần tra cứu thông tin gì về nội quy, giờ học hay nề nếp của trường?</div>
   </div>
   <div id="chat-input-container">
-    <input type="text" id="chat-input" placeholder="Nhập câu hỏi tra cứu..." onkeypress="handleKeyPress(event)">
-    <button onclick="sendMessage()">Gửi</button>
+    <input type="text" id="chat-input" placeholder="Nhập câu hỏi tra cứu...">
+    <button id="send-btn" type="button">Gửi</button>
   </div>
 </div>
 
 <script>
-  let chatHistory = [];
+  // Đảm bảo DOM đã tải hoàn tất trước khi gán sự kiện
+  document.addEventListener('DOMContentLoaded', () => {
+    let chatHistory = [];
 
-  function handleKeyPress(e) { 
-    if (e.key === 'Enter') sendMessage(); 
-  }
-
-  // Hàm xóa ký tự rác nếu Gemini tự chèn vào
-  function cleanText(text) {
-    return text.replace(/\/g, '').trim();
-  }
-
-  async function sendMessage() {
+    const sendBtn = document.getElementById('send-btn');
     const inputField = document.getElementById('chat-input');
-    const userMessage = inputField.value.trim();
-    if (!userMessage) return;
 
-    appendMessage(userMessage, 'user');
-    inputField.value = '';
+    if (sendBtn) {
+      sendBtn.addEventListener('click', sendMessage);
+    }
 
-    const loadingMessage = appendMessage('Đang tra cứu thông tin...', 'bot');
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userMessage,
-          history: chatHistory
-        })
+    if (inputField) {
+      inputField.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
       });
+    }
 
-      const data = await response.json();
+    // Hàm làm sạch ký tự dư thừa
+    function cleanText(text) {
+      if (!text) return '';
+      return text.replace(/\/g, '').trim();
+    }
 
-      if (data.reply) {
-        // Làm sạch và Render định dạng Markdown đẹp mắt
-        const formattedReply = marked.parse(cleanText(data.reply));
-        loadingMessage.innerHTML = formattedReply;
+    async function sendMessage() {
+      const userMessage = inputField.value.trim();
+      if (!userMessage) return;
 
-        // Lưu lịch sử hội thoại
-        chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
-        chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
-      } else {
-        loadingMessage.textContent = data.error || "Không tìm thấy thông tin phù hợp.";
+      appendMessage(userMessage, 'user');
+      inputField.value = '';
+
+      const loadingMessage = appendMessage('Đang tra cứu thông tin...', 'bot');
+
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            history: chatHistory
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.reply) {
+          const rawReply = cleanText(data.reply);
+          
+          // Kiểm tra nếu thư viện marked hoạt động tốt
+          if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
+            loadingMessage.innerHTML = marked.parse(rawReply);
+          } else {
+            loadingMessage.textContent = rawReply;
+          }
+
+          // Lưu lịch sử hội thoại
+          chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+          chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
+        } else {
+          loadingMessage.textContent = data.error || "Không tìm thấy thông tin phù hợp.";
+        }
+      } catch (error) {
+        loadingMessage.textContent = "Lỗi kết nối máy chủ. Vui lòng thử lại sau.";
       }
-    } catch (error) {
-      loadingMessage.textContent = "Lỗi kết nối máy chủ. Vui lòng thử lại sau.";
-    }
-  }
-
-  function appendMessage(text, sender) {
-    const messagesContainer = document.getElementById('chat-messages');
-    const msgDiv = document.createElement('div');
-    msgDiv.className = `message ${sender}`;
-    
-    if (sender === 'user') {
-      msgDiv.textContent = text;
-    } else {
-      msgDiv.innerHTML = text; // Hỗ trợ hiển thị HTML cho Bot
     }
 
-    messagesContainer.appendChild(msgDiv);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    return msgDiv;
-  }
+    function appendMessage(text, sender) {
+      const messagesContainer = document.getElementById('chat-messages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}`;
+      
+      if (sender === 'user') {
+        msgDiv.textContent = text;
+      } else {
+        msgDiv.innerHTML = text;
+      }
+
+      messagesContainer.appendChild(msgDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      return msgDiv;
+    }
+  });
 </script>
 
 </body>
