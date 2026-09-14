@@ -57,19 +57,11 @@
 </div>
 
 <script>
-  const GEMINI_API_KEY = "xxxx"; // Thay API Key của bạn vào đây
-
-  const FAQ_PROMPT = `Bạn là trợ lý tư vấn tự động cho website. Hãy trả lời ngắn gọn, lịch sự dựa trên dữ liệu FAQ sau:
-1. Giờ làm việc: 8:00 - 17:00 từ Thứ 2 đến Thứ 6.
-2. Phí vận chuyển: Miễn phí cho đơn hàng từ 500.000đ, đơn dưới tính phí 30.000đ.
-3. Chính sách đổi trả: Đổi trả trong 7 ngày nếu có lỗi sản xuất.
-4. Địa chỉ: 123 Đường ABC, Quận 1, TP. Hồ Chí Minh.
-
-Nếu câu hỏi không thuộc thông tin trên, hãy xin lỗi lịch sự và bảo người dùng gọi Hotline 1900-xxxx.`;
-
   let chatHistory = [];
 
-  function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+  function handleKeyPress(e) { 
+    if (e.key === 'Enter') sendMessage(); 
+  }
 
   async function sendMessage() {
     const inputField = document.getElementById('chat-input');
@@ -79,34 +71,31 @@ Nếu câu hỏi không thuộc thông tin trên, hãy xin lỗi lịch sự và
     appendMessage(userMessage, 'user');
     inputField.value = '';
 
-    chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
-
     const loadingMessage = appendMessage('Đang xử lý...', 'bot');
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
     try {
-      const response = await fetch(endpoint, {
+      // Gọi trực tiếp đến Node.js Serverless Function tại /api/chat
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: FAQ_PROMPT }] },
-          contents: chatHistory
+          message: userMessage,
+          history: chatHistory
         })
       });
 
       const data = await response.json();
 
-      if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
-        const botReply = data.candidates[0].content.parts[0].text;
-        loadingMessage.textContent = botReply;
-        chatHistory.push({ role: "model", parts: [{ text: botReply }] });
+      if (data.reply) {
+        loadingMessage.textContent = data.reply;
+        // Cập nhật lịch sử cuộc trò chuyện
+        chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
+        chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
       } else {
-        loadingMessage.textContent = "Không thể lấy câu trả lời.";
-        chatHistory.pop();
+        loadingMessage.textContent = data.error || "Không thể lấy câu trả lời.";
       }
     } catch (error) {
-      loadingMessage.textContent = "Lỗi kết nối API.";
-      chatHistory.pop();
+      loadingMessage.textContent = "Lỗi kết nối máy chủ.";
     }
   }
 
