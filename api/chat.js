@@ -1,42 +1,60 @@
+import fs from 'fs';
+import path from 'path';
+
 export default async function handler(req, res) {
   // Chỉ chấp nhận phương thức POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Lấy API Key từ Biến môi trường trên Vercel (Không lộ ra ngoài)
+  // Lấy API Key từ Environment Variables trên Vercel
   const apiKey = process.env.GEMINI_API_KEY;
-
   if (!apiKey) {
-    return res.status(500).json({ error: 'Chưa cấu hình GEMINI_API_KEY trên Vercel' });
+    return res.status(500).json({ error: 'Thiếu cấu hình GEMINI_API_KEY trên Vercel' });
   }
 
   const { message, history } = req.body;
-
   if (!message) {
-    return res.status(400).json({ error: 'Message is required' });
+    return res.status(400).json({ error: 'Nội dung tin nhắn không được để trống' });
   }
 
-  const FAQ_PROMPT = `Bạn là trợ lý tư vấn tự động cho website. Hãy trả lời ngắn gọn, lịch sự dựa trên dữ liệu FAQ sau:
-1. Giờ làm việc: 8:00 - 17:00 từ Thứ 2 đến Thứ 6.
-2. Phí vận chuyển: Miễn phí cho đơn hàng từ 500.000đ, đơn dưới tính phí 30.000đ.
-3. Chính sách đổi trả: Đổi trả trong 7 ngày nếu có lỗi sản xuất.
-4. Địa chỉ: 123 Đường ABC, Quận 1, TP. Hồ Chí Minh.
-
-Nếu câu hỏi không thuộc thông tin trên, hãy xin lỗi lịch sự và bảo người dùng gọi Hotline 1900-xxxx.`;
-
-  // Chuẩn bị danh sách tin nhắn gửi lên Gemini API
-  const contents = history || [];
-  contents.push({ role: 'user', parts: [{ text: message }] });
-
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
   try {
+    // 1. Đọc nội dung file FAQ Markdown từ thư mục gốc dự án
+    const filePath = path.join(process.cwd(), 'FAQ_Chatbot_PhuHuynh_THCS_PhuAn.md');
+    
+    let faqContent = '';
+    if (fs.existsSync(filePath)) {
+      faqContent = fs.readFileSync(filePath, 'utf8');
+    } else {
+      console.warn('Không tìm thấy file FAQ Markdown!');
+    }
+
+    // 2. Thiết lập System Instruction chứa toàn bộ thông tin FAQ
+    const systemInstruction = `Bạn là Trợ lý tư vấn tự động cho Phụ huynh Trường THCS Phú An (Năm học 2026 - 2027).
+Nhiệm vụ của bạn là giải đáp các thắc mắc về nề nếp, thời gian học, nội quy, thi đua và quy định an toàn giao thông của nhà trường.
+
+DƯỚI ĐÂY LÀ TÀI LIỆU FAQ CHÍNH THỨC DÙNG ĐỂ TRẢ LỜI:
+---
+${faqContent}
+---
+
+QUY TẮC TRẢ LỜI:
+1. Trả lời lịch sự, ân cần, xưng hô "Em/Tôi" và "Phụ huynh" hoặc "Anh/Chị".
+2. Câu trả lời phải ngắn gọn, rõ ràng, căn cứ chuẩn xác theo dữ liệu trong file FAQ trên (chỉ rõ thời gian, số điểm trừ/cộng hoặc quy định cụ thể nếu có).
+3. Nếu thắc mắc không có thông tin trong tài liệu FAQ, hãy lịch sự thông báo chưa có dữ liệu và hướng dẫn phụ huynh liên hệ trực tiếp với Giáo viên chủ nhiệm (GVCN) hoặc Ban Giám hiệu nhà trường để được hỗ trợ.`;
+
+    // 3. Chuẩn bị danh sách lịch sử hội thoại
+    const contents = history || [];
+    contents.push({ role: 'user', parts: [{ text: message }] });
+
+    // 4. Gọi Gemini API (Sử dụng mô hình gemini-2.5-flash)
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        system_instruction: { parts: [{ text: FAQ_PROMPT }] },
+        system_instruction: { parts: [{ text: systemInstruction }] },
         contents: contents
       })
     });
@@ -47,7 +65,7 @@ Nếu câu hỏi không thuộc thông tin trên, hãy xin lỗi lịch sự và
       const reply = data.candidates[0].content.parts[0].text;
       return res.status(200).json({ reply });
     } else {
-      return res.status(500).json({ error: 'Không lấy được phản hồi từ Gemini API' });
+      return res.status(500).json({ error: 'Không thể lấy phản hồi từ Gemini API' });
     }
   } catch (error) {
     return res.status(500).json({ error: 'Lỗi máy chủ: ' + error.message });
