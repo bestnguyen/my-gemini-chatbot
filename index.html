@@ -120,7 +120,6 @@
 </div>
 
 <script>
-  // Đảm bảo DOM đã tải hoàn tất trước khi gán sự kiện
   document.addEventListener('DOMContentLoaded', () => {
     let chatHistory = [];
 
@@ -139,10 +138,11 @@
       });
     }
 
-    // Hàm làm sạch ký tự dư thừa
+    // Hàm làm sạch ký tự dư thừa hoặc mã cite của Gemini
     function cleanText(text) {
       if (!text) return '';
-      return text.replace(/\/g, '').trim();
+      // Xóa các mã trích dẫn dạng nếu có
+      return text.replace(/\+\]/g, '').trim();
     }
 
     async function sendMessage() {
@@ -169,14 +169,12 @@
         if (data.reply) {
           const rawReply = cleanText(data.reply);
           
-          // Kiểm tra nếu thư viện marked hoạt động tốt
           if (typeof marked !== 'undefined' && typeof marked.parse === 'function') {
             loadingMessage.innerHTML = marked.parse(rawReply);
           } else {
             loadingMessage.textContent = rawReply;
           }
 
-          // Lưu lịch sử hội thoại
           chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
           chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
         } else {
