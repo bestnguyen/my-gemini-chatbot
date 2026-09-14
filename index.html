@@ -3,55 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chatbot FAQ</title>
+  <title>Chatbot FAQ THCS Phú An</title>
+  
+  <!-- Thư viện hỗ trợ đọc và hiển thị Markdown đẹp mắt -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <style>
-    body { margin: 0; padding: 0; background: transparent; font-family: Arial, sans-serif; }
+    * { box-sizing: border-box; }
+    body { 
+      margin: 0; 
+      padding: 0; 
+      background: transparent; 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
     #faq-chatbot-container {
-      width: 100%;
+      width: 100vw;
       height: 100vh;
       background: #ffffff;
       display: flex;
       flex-direction: column;
-      box-sizing: border-box;
     }
     #chat-header {
       background: #0073aa;
       color: #fff;
-      padding: 12px;
+      padding: 14px 16px;
       font-weight: bold;
+      font-size: 15px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     #chat-messages {
       flex: 1;
-      padding: 10px;
+      padding: 12px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
+      background-color: #f9f9fb;
     }
     .message {
-      max-width: 80%;
-      padding: 8px 12px;
-      border-radius: 8px;
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
       font-size: 14px;
-      line-height: 1.4;
+      line-height: 1.5;
       word-break: break-word;
     }
-    .message.user { background: #0073aa; color: #fff; align-self: flex-end; }
-    .message.bot { background: #f1f1f1; color: #333; align-self: flex-start; }
-    #chat-input-container { display: flex; padding: 10px; border-top: 1px solid #eee; }
-    #chat-input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
-    #chat-input-container button { margin-left: 6px; padding: 8px 12px; background: #0073aa; color: white; border: none; border-radius: 4px; cursor: pointer; }
+    .message.user { 
+      background: #0073aa; 
+      color: #fff; 
+      align-self: flex-end; 
+      border-bottom-right-radius: 2px;
+    }
+    .message.bot { 
+      background: #ffffff; 
+      color: #2c3e50; 
+      align-self: flex-start; 
+      border-bottom-left-radius: 2px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    /* ĐỊNH DẠNG TRÌNH BÀY CHO VĂN BẢN BOT (MARKDOWN) */
+    .message.bot p { margin: 0 0 8px 0; }
+    .message.bot p:last-child { margin-bottom: 0; }
+    .message.bot ul, .message.bot ol { 
+      margin: 4px 0 8px 0; 
+      padding-left: 20px; 
+    }
+    .message.bot li { margin-bottom: 4px; }
+    .message.bot strong { color: #0073aa; }
+
+    #chat-input-container { 
+      display: flex; 
+      padding: 10px; 
+      background: #fff;
+      border-top: 1px solid #e2e8f0; 
+    }
+    #chat-input { 
+      flex: 1; 
+      padding: 10px 12px; 
+      border: 1px solid #cbd5e1; 
+      border-radius: 6px; 
+      outline: none; 
+      font-size: 14px;
+    }
+    #chat-input:focus {
+      border-color: #0073aa;
+    }
+    #chat-input-container button { 
+      margin-left: 8px; 
+      padding: 10px 16px; 
+      background: #0073aa; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      font-weight: bold;
+      cursor: pointer; 
+      transition: background 0.2s;
+    }
+    #chat-input-container button:hover {
+      background: #005177;
+    }
   </style>
 </head>
 <body>
 
 <div id="faq-chatbot-container">
-  <div id="chat-header">Trợ lý FAQ Trực tuyến</div>
+  <div id="chat-header">Trợ lý Phụ huynh - THCS Phú An</div>
   <div id="chat-messages">
-    <div class="message bot">Xin chào! Tôi có thể hỗ trợ gì về thông tin lớp học hay các thắc mắc chung?</div>
+    <div class="message bot">Kính chào Phụ huynh! Tôi là Trợ lý tư vấn tự động của Trường THCS Phú An. Phụ huynh cần tra cứu thông tin gì về nội quy, giờ học hay nề nếp của trường?</div>
   </div>
   <div id="chat-input-container">
-    <input type="text" id="chat-input" placeholder="Nhập câu hỏi..." onkeypress="handleKeyPress(event)">
+    <input type="text" id="chat-input" placeholder="Nhập câu hỏi tra cứu..." onkeypress="handleKeyPress(event)">
     <button onclick="sendMessage()">Gửi</button>
   </div>
 </div>
@@ -63,6 +126,11 @@
     if (e.key === 'Enter') sendMessage(); 
   }
 
+  // Hàm xóa ký tự rác nếu Gemini tự chèn vào
+  function cleanText(text) {
+    return text.replace(/\/g, '').trim();
+  }
+
   async function sendMessage() {
     const inputField = document.getElementById('chat-input');
     const userMessage = inputField.value.trim();
@@ -71,10 +139,9 @@
     appendMessage(userMessage, 'user');
     inputField.value = '';
 
-    const loadingMessage = appendMessage('Đang xử lý...', 'bot');
+    const loadingMessage = appendMessage('Đang tra cứu thông tin...', 'bot');
 
     try {
-      // Gọi trực tiếp đến Node.js Serverless Function tại /api/chat
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,15 +154,18 @@
       const data = await response.json();
 
       if (data.reply) {
-        loadingMessage.textContent = data.reply;
-        // Cập nhật lịch sử cuộc trò chuyện
+        // Làm sạch và Render định dạng Markdown đẹp mắt
+        const formattedReply = marked.parse(cleanText(data.reply));
+        loadingMessage.innerHTML = formattedReply;
+
+        // Lưu lịch sử hội thoại
         chatHistory.push({ role: "user", parts: [{ text: userMessage }] });
         chatHistory.push({ role: "model", parts: [{ text: data.reply }] });
       } else {
-        loadingMessage.textContent = data.error || "Không thể lấy câu trả lời.";
+        loadingMessage.textContent = data.error || "Không tìm thấy thông tin phù hợp.";
       }
     } catch (error) {
-      loadingMessage.textContent = "Lỗi kết nối máy chủ.";
+      loadingMessage.textContent = "Lỗi kết nối máy chủ. Vui lòng thử lại sau.";
     }
   }
 
@@ -103,7 +173,13 @@
     const messagesContainer = document.getElementById('chat-messages');
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${sender}`;
-    msgDiv.textContent = text;
+    
+    if (sender === 'user') {
+      msgDiv.textContent = text;
+    } else {
+      msgDiv.innerHTML = text; // Hỗ trợ hiển thị HTML cho Bot
+    }
+
     messagesContainer.appendChild(msgDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
     return msgDiv;
