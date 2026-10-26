@@ -205,3 +205,31 @@ Khung xếp loại thi đua áp dụng cho các lớp như sau [cite: 3]:
 - **Điểm thi đua trực tuần:**
   - Hoàn thành tốt nhiệm vụ: Được **cộng 10 điểm** (hoặc +2 điểm thưởng/tuần) [cite: 3, 4].
   - Thực hiện nhiệm vụ không tốt: Bị **trừ 10 điểm/lần trực** [cite: 4].
+#### Câu 21: Trách nhiệm và quyền lợi của Học sinh khi đạt điểm rèn luyện cao nhất tổ trong tuần, trong tháng.
+**Trả lời:**
+NỘI QUY THI ĐUA LỚP 8A3 – NĂM HỌC 2025-2026
+1.	Điểm cộng:
+-	Tham gia các phong trào của trường, lớp đạt hiệu quả: + 5 điểm/ lần
+-	Điểm tốt 9, 10 (+5 điểm/ lần); điểm 8 (+3 điểm/ lần)
+-	Phát hiện bạn xả rác, không đội mũ bảo hiểm (+2 điểm/ lần)
+-	Phát biểu xây dựng bài học (+1/ lượt phát biểu đúng) 
+2.	Điểm trừ:
+-	Đi học muộn, bỏ tiết, nghỉ học không phép: -5 điểm/ lần
+-	Không đội mũ bảo hiểm khi đi xe đạp điện, ngồi sau xe máy: -5 điểm/ lần
+-	Ăn quà bánh, nước ngọt trên lớp, trên dãy hành lang lớp học: - 5 điểm/ lần
+-	Nói tục, nói bậy, bị sao đỏ ghi tên vào sổ theo dõi: - 5 điểm/lượt
+-	Không phát biểu trong tuần (-2 điểm/tuần)
+-	Không đúng đồng phục, không đủ dụng cụ học tập - 2 điểm/ lần
+-	Nói chuyện, làm việc riêng trong giờ học - 2 điểm/ lần
+-	Không xếp hàng ngay ngắn, không hát đầu giờ, sinh hoạt dưới cờ - 2 điểm/ lần
+-	Điểm xấu: 0,1,2: - 2 điểm/ lần
+-	Điểm xấu: 3,4: - 1 điểm/ lần
+3.	Cách tính điểm và xếp loại:
+- Mỗi học sinh có ban đầu là 100 điểm, Cán bộ lớp 105 điểm, có 5 điểm trách nhiệm, nếu không thực hiện tốt trừ 5 điểm trách nhiệm.		Loại Tốt (T): >=98 điểm
+- Loại Khá (K): 90 – 97 điểm
+- Loại Đạt (Đ): 84-89 điểm
+- Loại Chưa đạt: (CĐ): <=84 điểm
+- Hàng tuần: Tuyên dương học sinh có điểm trung bình cao, nhắc nhở học sinh vi phạm.
+- Hàng tháng: Những học sinh có điểm trung bình cao nhất tháng sẽ được tuyên dương, khen thưởng.
+
+  
